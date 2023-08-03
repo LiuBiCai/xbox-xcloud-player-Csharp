@@ -36,7 +36,7 @@ namespace xboxRemoteTest
         }
 
 
-        public async Task<string> GetSession()
+        public async Task<string> IsSessionsReady()
         {
             Console.WriteLine("API - session sessionID: " + tempSessionID);
             using var client = new HttpClient();

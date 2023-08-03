@@ -1,4 +1,5 @@
-﻿using xboxRemoteTest;
+﻿using System;
+using xboxRemoteTest;
 
 //Remote remote=new Remote();
 //var  result=remote.Consoles();
@@ -8,10 +9,27 @@ Server server=new Server();
 server.userToken = userToken;
 //await server.GetConsoles();
 string serverId = "F4001CC3A528E632";
-//var startSession=await server.Start(serverId);
-//Console.WriteLine(startSession.SessionId);
-server.tempSessionID = "F06CB311-246D-415B-86F1-0ED060A27A3F";
-var result2=await server.GetSession();
+var startSession=await server.Start(serverId);
+Console.WriteLine(startSession.SessionId);
+Console.WriteLine("xCloudPlayer Client - /api/start - ok, got:", startSession.SessionId);
 
+//server.tempSessionID = "F06CB311-246D-415B-86F1-0ED060A27A3F";
+var result2=await server.IsSessionsReady();
+Console.WriteLine("xCloudPlayer Client - /api/start - Session is ready!", result2, "Waiting...");
+/*
+// Create a new WebRTC connection
+var webRtcConnection = new WebRtcConnection();
 
-// END: ed8c6549bwf9
+// Handle new messages
+webRtcConnection.OnIceCandidate += (string candidate) =>
+{
+    // Handle ICE Candidate messages
+};
+
+webRtcConnection.OnSdpMessage += (string sdp) =>
+{
+    // Handle SDP signaling messages
+};
+
+*/
+
