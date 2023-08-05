@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
@@ -48,12 +49,20 @@ namespace SingallingTest
         public string getConfigFailed = "Get config failed";
         public string getIceFailed = "Get ICE failed";
         public string getConfigSDPFailed = "Get Config SDP Failed";
+
+        Stack<RTCIceCandidate> _iceCandidates = new Stack<RTCIceCandidate>();
         public Singalling()
         {
             _webrtcClient = new RTCPeerConnection(_webrtcConfiguration);
             OpenDataChannels();
             _webrtcClient.onicecandidate += async (cand) =>
             {
+                Console.WriteLine(cand.ToString());
+                if(cand.candidate!=null)
+                {
+                    _iceCandidates.Push(cand);
+                }
+                
                 Console.WriteLine("cand");
                 // Handle ICE Candidate messages
                 //
@@ -241,32 +250,7 @@ namespace SingallingTest
             return getConfigFailed;
         }
 
-        public async Task<string> GetIce(object ice)
-        {
-            Console.WriteLine($"API - config-ice sessionID: {tempSessionID}");
-            using (var client = new HttpClient())
-            {
-                int waitCount = 0;
-                do
-                {
-
-                    var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/ice");
-                    Console.WriteLine($"API - config-ice statuscode: {(int)response.StatusCode}");
-                    if (response.StatusCode== HttpStatusCode.OK)
-                    {
-                        var data = await response.Content.ReadAsStringAsync();
-
-                        return data;
-                    }
-
-                    await Task.Delay(1000);
-                }
-                while (waitCount++ < 100);
-                return getIceFailed;
-               
-            }
-              
-        }
+        
         public async Task<string> ConfigureSDP()
         {
             Console.WriteLine("API - config-sdp sessionID:" + tempSessionID);
@@ -274,11 +258,12 @@ namespace SingallingTest
             using (var client = new HttpClient())
             {
                 int waitCount = 0;
+                client.BaseAddress = new Uri("https://uks.gssv-play-prodxhome.xboxlive.com");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 do
                 {
-                    client.BaseAddress = new Uri("https://uks.gssv-play-prodxhome.xboxlive.com");
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    
 
                     HttpResponseMessage response = await client.GetAsync("/v4/sessions/home/" + tempSessionID + "/sdp");
                     if(response.StatusCode== HttpStatusCode.OK)
@@ -344,14 +329,114 @@ namespace SingallingTest
             return data;
         }
 
-        public async void SetRemoteOffer(string data)
+        public async Task<bool> SetRemoteOffer(string data)
         {
+            try
+            {
+                //反序列化data
+                //"{\"exchangeResponse\":\"{\\\"audio\\\":1,\\\"chat\\\":1,\\\"chatConfiguration\\\":{\\\"format\\\":{\\\"codec\\\":\\\"opus\\\",\\\"container\\\":\\\"webm\\\"}},\\\"control\\\":2,\\\"input\\\":4,\\\"message\\\":1,\\\"messageType\\\":\\\"answer\\\",\\\"sdp\\\":\\\"v=0\\\\r\\\\no=- 4649125511298530 2 IN IP4 127.0.0.1\\\\r\\\\ns=-\\\\r\\\\nt=0 0\\\\r\\\\na=group:BUNDLE 0\\\\r\\\\na=msid-semantic: WMS\\\\r\\\\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\\\\r\\\\nc=IN IP4 0.0.0.0\\\\r\\\\na=ice-ufrag:HiBsFfw4Nf\\\\r\\\\na=ice-pwd:ctoAxwOKKy29bp9WCWWmquTk\\\\r\\\\na=fingerprint:sha-256 78:D6:C4:80:14:2F:F0:A3:11:38:21:98:F4:38:0A:37:2F:4A:51:C1:0A:37:CF:72:B5:E5:B2:BE:47:E0:B2:14\\\\r\\\\na=setup:active\\\\r\\\\na=mid:0\\\\r\\\\na=sctp-port:20284\\\\r\\\\n\\\",\\\"sdpType\\\":\\\"answer\\\",\\\"status\\\":\\\"success\\\",\\\"supportedFecProtocols\\\":[\\\"raptorq\\\"],\\\"video\\\":2}\",\"errorDetails\":{\"code\":null,\"message\":null}}"
+                string sdpPattern = "\\\\\"sdp\\\\\":\\\\\"(.*?)\\\\\""; 
+                Match sdpMatch = Regex.Match(data, sdpPattern); 
+                string sdp = sdpMatch.Groups[1].Value;              
+                
+                sdp = sdp.Replace("\\\\", "\\");
+                sdp=Regex.Replace(sdp, @"\\r\\n", "\r\n");
+                sdp= Regex.Replace(sdp, @"\\n", "\n");
+                sdp= Regex.Replace(sdp, @"\\r", "\r");
+                
+                SDP des = SDP.ParseSDPDescription(sdp);
+                _webrtcClient.SetRemoteDescription(SdpType.answer, des);
+                return true;
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine("SetRemoteOffer");
+                return false;
+
+            }
+
+           
+        }
+
+        public async Task<bool> PostIce()
+        {
+            var iceCandidate = new IceCandidate
+            {
+                candidate = _iceCandidates.Peek().candidate,
+                sdpMid = "0",
+                sdpMLineIndex = 0
+            };
+            var payload = new IcePayload { ice = iceCandidate };
+            var ice = JsonConvert.SerializeObject(payload);
 
 
+            Console.WriteLine($"API - POST - config-ice sessionID: {tempSessionID}");
+            Console.WriteLine(ice);
 
-            SDP sdp =SDP.ParseSDPDescription(data);
+            string postData = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                messageType = "iceCandidate",
+                candidate = ice
+            });
 
-            _webrtcClient.SetRemoteDescription(SdpType.answer, sdp);
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
+            HttpContent httpContent = new StringContent(postData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await httpClient.PostAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/ice", httpContent);
+
+            Console.WriteLine($"API - start statuscode: {response.StatusCode}");
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<string> GetIce()
+        {
+            Console.WriteLine($"API - config-ice sessionID: {tempSessionID}");
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                int waitCount = 0;
+                do
+                {
+
+                    var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/ice");
+                    Console.WriteLine($"API - config-ice statuscode: {(int)response.StatusCode}");
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        var data = await response.Content.ReadAsStringAsync();
+
+                        return data;
+                    }
+
+                    await Task.Delay(1000);
+                }
+                while (waitCount++ < 100);
+                return getIceFailed;
+
+            }
+
+        }
+
+        public async Task<string> SetIceCandidates(string data)
+        {
+            // remove \" in data
+            data=data.Replace("\\", "");
+            data = data.Replace("\"", "");
+            Console.WriteLine(data);
+            var iceCandidates = JsonConvert.DeserializeObject<IcePayloads>(data);
+            foreach (var iceCandidate in iceCandidates.candidates)
+            {
+                //pc.addIceCandidate({ candidate: evt.data, sdpMid: "0", sdpMLineIndex: 0 });
+                if (iceCandidate.candidate.Contains("end-of-candidates"))
+                    break;
+                _webrtcClient.addIceCandidate(new RTCIceCandidateInit()
+                {
+                    candidate=iceCandidate.candidate,
+                    sdpMid=iceCandidate.sdpMid,
+                    sdpMLineIndex=iceCandidate.sdpMLineIndex
+                });
+            }
+            return "success";
         }
     }
     public class SessionStartResponse
@@ -359,8 +444,22 @@ namespace SingallingTest
         public string SessionId { get; set; } = "";
         // Define additional properties for the session start response here
     }
-    public class ExchangeResponse
+    public class IceCandidate
     {
-        string exchangeResponse { get; set; } = "";
+        public string candidate { get; set; }
+        public ushort sdpMLineIndex { get; set; }
+        public string sdpMid { get; set; }
     }
+
+    public class IcePayload
+    {
+        public IceCandidate ice { get; set; }
+    }
+
+    public class IcePayloads
+    {
+        public IceCandidate[] candidates { get; set; }
+    }
+
+
 }

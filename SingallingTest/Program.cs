@@ -5,7 +5,7 @@
 using SingallingTest;
 Singalling singalling = new Singalling();
 //xss 4100
-string userToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjgxQjg5MDA3LTI1REQtNEMwMC1BNjcyLTUyQzI0QzQ1OUY5RCIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6IjEwMTY4OTg0MzkiLCJjb3VudHJ5IjoiMjAiLCJjb3VudHJ5Y29kZSI6IkNOIiwiZGV2aWNlaWQiOiJGNzAwRTRDMUM1OTI3NjYyIiwiZGV2aWNldHlwZSI6IkFuZHJvaWQiLCJ1c2VyaWQiOiJMYWRlbkdvbGYzMTI4IiwicHVpZCI6Ijg0NDQyNjU4MTQ3NzM0NyIsInh1aWQiOiIyNTM1NDI4MjY2MDkyMjEzIiwieHVzRmxpZ2h0cyI6IltcIjQ2MTE2ODYwMTg1NDczMzIwMDBcIixcImI0ZWMyNTRlLWNlYzAtNDlkZC04MzEzLWVmNWQwNWZiYWVmNVwiLFwiYzE2MzczMmEtZGViNi00MTQwLWI5YzUtN2NmZDNkMGFiODcxXCIsXCIxYzNmNzhhYi05YWJhLTRkNWMtODM3MC04NmE1ZTc4OWE5N2NcIl0iLCJwYXJ0bmVyaWQiOiJNSUNST1NPRlQiLCJvZmZlcmluZ2lkIjoiWEhPTUUiLCJpbnN0YW5jZWlkIjoiMWJhZjNhNDEtZjU0Zi00MTA4LWEyYWItNDI3NWQ2MzI2NTcxIiwidHlwZSI6IlVzZXIiLCJ2ZXJzaW9uIjoiMi4wIiwiZmxpZ2h0cyI6Int9IiwibmJmIjoxNjkwOTU3MTM2LCJleHAiOjE2OTA5NzE1MzYsImlhdCI6MTY5MDk1NzEzNiwiaXNzIjoiaHR0cHM6Ly94aG9tZS1hdXRoLXByb2QueGJveGxpdmUuY29tIiwiYXVkIjoiaHR0cHM6Ly94aG9tZS1wcm9kLnhib3hsaXZlLmNvbSJ9.Dq5c_Gx09QSjIRpi-2rEJtC3ohrCllMBK9iATF3ZQidwHHZ93wMaXaDACpadEg2mTb1w-x3jn_Y3pUE0uundIFX5yAMfVHnBAbKxOOA6tM5rnnI8lk4eGxX7AJaAXh-zHRKF6sphKsoXee4Wy8ewDsC3ZVcMFW0rDKWyt-GsO74";
+string userToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA1MDRCRjZCLTA2MzMtNEJDQS04M0Y3LUNFQjA4RjA0MkMzRSIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6IjEwMTY4OTg0MzkiLCJjb3VudHJ5IjoiMjAiLCJjb3VudHJ5Y29kZSI6IkNOIiwiZGV2aWNlaWQiOiJGNzAwRTRDMUM1OTI3NjYyIiwiZGV2aWNldHlwZSI6IkFuZHJvaWQiLCJ1c2VyaWQiOiJMYWRlbkdvbGYzMTI4IiwicHVpZCI6Ijg0NDQyNjU4MTQ3NzM0NyIsInh1aWQiOiIyNTM1NDI4MjY2MDkyMjEzIiwieHVzRmxpZ2h0cyI6IltcIjQ2MTE2ODYwMTg1NDczMzIwMDBcIixcImI0ZWMyNTRlLWNlYzAtNDlkZC04MzEzLWVmNWQwNWZiYWVmNVwiLFwiYzE2MzczMmEtZGViNi00MTQwLWI5YzUtN2NmZDNkMGFiODcxXCIsXCIxYzNmNzhhYi05YWJhLTRkNWMtODM3MC04NmE1ZTc4OWE5N2NcIl0iLCJwYXJ0bmVyaWQiOiJNSUNST1NPRlQiLCJvZmZlcmluZ2lkIjoiWEhPTUUiLCJpbnN0YW5jZWlkIjoiNGM4NTA1NWQtMjM5ZC00Zjc1LWE0YzYtNTU5NWNhODY0MTM3IiwidHlwZSI6IlVzZXIiLCJ2ZXJzaW9uIjoiMi4wIiwiZmxpZ2h0cyI6Int9IiwibmJmIjoxNjkxMjIxOTU3LCJleHAiOjE2OTEyMzYzNTcsImlhdCI6MTY5MTIyMTk1NywiaXNzIjoiaHR0cHM6Ly94aG9tZS1hdXRoLXByb2QueGJveGxpdmUuY29tIiwiYXVkIjoiaHR0cHM6Ly94aG9tZS1wcm9kLnhib3hsaXZlLmNvbSJ9.gAaWCEjTCfhz_uwrUvJty2-kq8joyRuH9L1jNkgetxCzZuQYmZaTPdCE9kWAre_QWONnULYtcZdoOyV9DRoOXxUzTPJaMdlRzacRuEcqQCcttam6kPMdfgydN7a8VkkZ2xb07eW6hFGkBxCWS_5JR9WhefRXCZG2wg33t5pHswY";
 
 singalling.userToken = userToken;
 //await server.GetConsoles();
@@ -56,14 +56,19 @@ Console.WriteLine("sdp="+sdp);
 
 // Do ICE Handshake
 //var sdpDetails = JSON.parse(data.exchangeResponse)
-
-
-
 //client.setRemoteOffer(sdpDetails.sdp)
+await singalling.SetRemoteOffer(sdp);
 
+// Send ice config
+await singalling.PostIce();
 
-
-
+// ICE Has been set, lets do ICE
+var ice = await singalling.GetIce();
+/*
+ * {"candidates":"[{\"candidate\":\"a=candidate:1 1 UDP 100 192.168.3.55 9002 typ host \",\"messageType\":\"iceCandidate\",\"sdpMLineIndex\":\"0\",\"sdpMid\":\"0\"},{\"candidate\":\"a=candidate:2 1 UDP 1 2001:0:2851:7ae4:3cca:d733:c20e:356a 9002 typ host \",\"messageType\":\"iceCandidate\",\"sdpMLineIndex\":\"0\",\"sdpMid\":\"0\"},{\"candidate\":\"a=end-of-candidates\",\"messageType\":\"iceCandidate\",\"sdpMLineIndex\":\"0\",\"sdpMid\":\"0\"}]"}
+ * 
+ */
+await singalling.SetIceCandidates(ice);
 
 
 
