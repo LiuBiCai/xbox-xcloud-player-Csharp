@@ -1,11 +1,12 @@
 ﻿
 
 //console.log('xCloudPlayer Client - /api/start - Session is ready!', data)
-
+ 
 using SingallingTest;
-Singalling singalling = new Singalling();
-//xss 4100
-string userToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjA1MDRCRjZCLTA2MzMtNEJDQS04M0Y3LUNFQjA4RjA0MkMzRSIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6IjEwMTY4OTg0MzkiLCJjb3VudHJ5IjoiMjAiLCJjb3VudHJ5Y29kZSI6IkNOIiwiZGV2aWNlaWQiOiJGNzAwRTRDMUM1OTI3NjYyIiwiZGV2aWNldHlwZSI6IkFuZHJvaWQiLCJ1c2VyaWQiOiJMYWRlbkdvbGYzMTI4IiwicHVpZCI6Ijg0NDQyNjU4MTQ3NzM0NyIsInh1aWQiOiIyNTM1NDI4MjY2MDkyMjEzIiwieHVzRmxpZ2h0cyI6IltcIjQ2MTE2ODYwMTg1NDczMzIwMDBcIixcImI0ZWMyNTRlLWNlYzAtNDlkZC04MzEzLWVmNWQwNWZiYWVmNVwiLFwiYzE2MzczMmEtZGViNi00MTQwLWI5YzUtN2NmZDNkMGFiODcxXCIsXCIxYzNmNzhhYi05YWJhLTRkNWMtODM3MC04NmE1ZTc4OWE5N2NcIl0iLCJwYXJ0bmVyaWQiOiJNSUNST1NPRlQiLCJvZmZlcmluZ2lkIjoiWEhPTUUiLCJpbnN0YW5jZWlkIjoiNGM4NTA1NWQtMjM5ZC00Zjc1LWE0YzYtNTU5NWNhODY0MTM3IiwidHlwZSI6IlVzZXIiLCJ2ZXJzaW9uIjoiMi4wIiwiZmxpZ2h0cyI6Int9IiwibmJmIjoxNjkxMjIxOTU3LCJleHAiOjE2OTEyMzYzNTcsImlhdCI6MTY5MTIyMTk1NywiaXNzIjoiaHR0cHM6Ly94aG9tZS1hdXRoLXByb2QueGJveGxpdmUuY29tIiwiYXVkIjoiaHR0cHM6Ly94aG9tZS1wcm9kLnhib3hsaXZlLmNvbSJ9.gAaWCEjTCfhz_uwrUvJty2-kq8joyRuH9L1jNkgetxCzZuQYmZaTPdCE9kWAre_QWONnULYtcZdoOyV9DRoOXxUzTPJaMdlRzacRuEcqQCcttam6kPMdfgydN7a8VkkZ2xb07eW6hFGkBxCWS_5JR9WhefRXCZG2wg33t5pHswY";
+
+xCloudPlayer singalling = new xCloudPlayer();
+//xss 4100 abagail231
+string userToken = " eyJhbGciOiJSUzI1NiIsImtpZCI6IkI1Njc4NDlELTNDQjAtNDE3Qi1CODFCLUU5OEMxMjBDNEI4OCIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6IjEwMTY4OTg0MzkiLCJjb3VudHJ5IjoiMjAiLCJjb3VudHJ5Y29kZSI6IkNOIiwiZGV2aWNlaWQiOiJGNzAwRkYxRjJBMzE3OTNEIiwiZGV2aWNldHlwZSI6IkFuZHJvaWQiLCJ1c2VyaWQiOiJMYWRlbkdvbGYzMTI4IiwicHVpZCI6Ijg0NDQyNjU4MTQ3NzM0NyIsInh1aWQiOiIyNTM1NDI4MjY2MDkyMjEzIiwieHVzRmxpZ2h0cyI6IltcIjQ2MTE2ODYwMTg1NDczMzIwMDBcIixcImI0ZWMyNTRlLWNlYzAtNDlkZC04MzEzLWVmNWQwNWZiYWVmNVwiLFwiYzE2MzczMmEtZGViNi00MTQwLWI5YzUtN2NmZDNkMGFiODcxXCIsXCIxYzNmNzhhYi05YWJhLTRkNWMtODM3MC04NmE1ZTc4OWE5N2NcIl0iLCJwYXJ0bmVyaWQiOiJNSUNST1NPRlQiLCJvZmZlcmluZ2lkIjoiWEhPTUUiLCJpbnN0YW5jZWlkIjoiZmY4YzIxNzQtZDkxYy00NDY1LWEwMDQtNDdmODBlNzRhYjI2IiwidHlwZSI6IlVzZXIiLCJ2ZXJzaW9uIjoiMi4wIiwiZmxpZ2h0cyI6Int9IiwibmJmIjoxNjkzMTAyNjY3LCJleHAiOjE2OTMxMTcwNjcsImlhdCI6MTY5MzEwMjY2NywiaXNzIjoiaHR0cHM6Ly94aG9tZS1hdXRoLXByb2QueGJveGxpdmUuY29tIiwiYXVkIjoiaHR0cHM6Ly94aG9tZS1wcm9kLnhib3hsaXZlLmNvbSJ9.TOtAW2S1qKr1corrAXO601j6TKkVcJxo5buZBjHH4KPV0EdPbYg9AlaveCN7TBOjnMrkJuig25yabrFMmpItnyDBLaapD6mQgr9djWmO8cFlV91vmJCbu8h_xTM67xB1usRSIEIUVQjK5GZ9-QzaDsS1LoSMk0U0IpO3CHuEPmI";
 
 singalling.userToken = userToken;
 //await server.GetConsoles();
@@ -20,7 +21,7 @@ Console.WriteLine("xCloudPlayer Client - /api/start - Session is ready!", result
 
 // Fetch SDP Offer
 // client.createOffer().then((offer) => {
-singalling.CreatOffer();
+await singalling.CreatOffer();
 // console.log('xCloudPlayer Client - Got offer data:', offer)
 
 /*
@@ -69,8 +70,18 @@ var ice = await singalling.GetIce();
  * 
  */
 await singalling.SetIceCandidates(ice);
+for(int i=0;i<30;i++)
+{
+    await Task.Yield();
+    await Task.Run(() =>
+    {
+        
+        Thread.Sleep(10000);
+        Console.WriteLine("Waiting...");
+    });
+}
 
-
+Console.ReadLine();
 
 
 
