@@ -20,7 +20,7 @@ namespace SingallingTest.Channel
         // private BitrateCounter _bitrateCounter;
         // private LatencyCounter _latencyCounter;
 
-        public VideoChannel(string channelName, xCloudPlayer client) : base(channelName, client)
+        public VideoChannel(string channelName) : base(channelName)
         {
             //  this._component = new VideoComponent(this.getClient());
             //  this._fpsCounter = new FpsCounter(this.getClient(), "video");

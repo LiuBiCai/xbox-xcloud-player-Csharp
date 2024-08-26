@@ -19,10 +19,10 @@ namespace SingallingTest.Channel
             { "state", new List<Action<object>>() }
         };
 
-        public BaseChannel(string channelName, xCloudPlayer client)
+        public BaseChannel(string channelName)
         {
             this._channelName = channelName;
-            this._client = client;
+            //this._client = client;
             this._state = "new";
         }
 

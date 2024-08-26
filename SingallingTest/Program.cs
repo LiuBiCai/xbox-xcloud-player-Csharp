@@ -6,7 +6,7 @@ using SingallingTest;
 
 xCloudPlayer singalling = new xCloudPlayer();
 //xss 4100 abagail231
-string userToken = " eyJhbGciOiJSUzI1NiIsImtpZCI6IkI1Njc4NDlELTNDQjAtNDE3Qi1CODFCLUU5OEMxMjBDNEI4OCIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6IjEwMTY4OTg0MzkiLCJjb3VudHJ5IjoiMjAiLCJjb3VudHJ5Y29kZSI6IkNOIiwiZGV2aWNlaWQiOiJGNzAwRkYxRjJBMzE3OTNEIiwiZGV2aWNldHlwZSI6IkFuZHJvaWQiLCJ1c2VyaWQiOiJMYWRlbkdvbGYzMTI4IiwicHVpZCI6Ijg0NDQyNjU4MTQ3NzM0NyIsInh1aWQiOiIyNTM1NDI4MjY2MDkyMjEzIiwieHVzRmxpZ2h0cyI6IltcIjQ2MTE2ODYwMTg1NDczMzIwMDBcIixcImI0ZWMyNTRlLWNlYzAtNDlkZC04MzEzLWVmNWQwNWZiYWVmNVwiLFwiYzE2MzczMmEtZGViNi00MTQwLWI5YzUtN2NmZDNkMGFiODcxXCIsXCIxYzNmNzhhYi05YWJhLTRkNWMtODM3MC04NmE1ZTc4OWE5N2NcIl0iLCJwYXJ0bmVyaWQiOiJNSUNST1NPRlQiLCJvZmZlcmluZ2lkIjoiWEhPTUUiLCJpbnN0YW5jZWlkIjoiZmY4YzIxNzQtZDkxYy00NDY1LWEwMDQtNDdmODBlNzRhYjI2IiwidHlwZSI6IlVzZXIiLCJ2ZXJzaW9uIjoiMi4wIiwiZmxpZ2h0cyI6Int9IiwibmJmIjoxNjkzMTAyNjY3LCJleHAiOjE2OTMxMTcwNjcsImlhdCI6MTY5MzEwMjY2NywiaXNzIjoiaHR0cHM6Ly94aG9tZS1hdXRoLXByb2QueGJveGxpdmUuY29tIiwiYXVkIjoiaHR0cHM6Ly94aG9tZS1wcm9kLnhib3hsaXZlLmNvbSJ9.TOtAW2S1qKr1corrAXO601j6TKkVcJxo5buZBjHH4KPV0EdPbYg9AlaveCN7TBOjnMrkJuig25yabrFMmpItnyDBLaapD6mQgr9djWmO8cFlV91vmJCbu8h_xTM67xB1usRSIEIUVQjK5GZ9-QzaDsS1LoSMk0U0IpO3CHuEPmI";
+string userToken = " eyJhbGciOiJSUzI1NiIsImtpZCI6IjEwQkI4OTgzLTI4NDktNEYyQi05MDczLTI2Rjg0NzVBMjM3QiIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6IjEwMTY4OTg0MzkiLCJjb3VudHJ5IjoiMTAzIiwiY291bnRyeWNvZGUiOiJVUyIsImRldmljZWlkIjoiRjcwMEUyMTYwN0VGNENCNCIsImRldmljZXR5cGUiOiJBbmRyb2lkIiwidXNlcmlkIjoiUm9ja01hcm1vdDM1MDQwIiwicHVpZCI6IjEwNTU1MTk5OTI2ODc2MjgiLCJ4dWlkIjoiMjUzNTQzNTQwNzUxNjY0MCIsInh1c0ZsaWdodHMiOiJbXCI0NjExNjg2MDE4NTQ3MzMyMDAwXCIsXCJiNGVjMjU0ZS1jZWMwLTQ5ZGQtODMxMy1lZjVkMDVmYmFlZjVcIixcImMxNjM3MzJhLWRlYjYtNDE0MC1iOWM1LTdjZmQzZDBhYjg3MVwiLFwiMWMzZjc4YWItOWFiYS00ZDVjLTgzNzAtODZhNWU3ODlhOTdjXCJdIiwicGFydG5lcmlkIjoiTUlDUk9TT0ZUIiwib2ZmZXJpbmdpZCI6IlhIT01FIiwiaW5zdGFuY2VpZCI6IjNkZmI2ZTgyLTliM2QtNDYwYi04MmQxLWRiNzBhZjg0MmQ0ZCIsInR5cGUiOiJVc2VyIiwidmVyc2lvbiI6IjIuMCIsImZsaWdodHMiOiJ7fSIsIm5iZiI6MTY5NDQyMjcwNywiZXhwIjoxNjk0NDM3MTA3LCJpYXQiOjE2OTQ0MjI3MDcsImlzcyI6Imh0dHBzOi8veGhvbWUtYXV0aC1wcm9kLnhib3hsaXZlLmNvbSIsImF1ZCI6Imh0dHBzOi8veGhvbWUtcHJvZC54Ym94bGl2ZS5jb20ifQ.JQUi9fHnnkUJCoBUfqDd-8V5NQoU1DT91zwjtxnazmo6NY6756UdNBGzFQAVxdSZKdZBCLKjSztndR5BvRdx4Jy8O04QmsgGCT3CvIDrV0sZRQrAPmaEc6_Iyw1t5jtMnWm7p4As6LFn_DD_n9Dr2dA-7qYHRv0r9W-Ry99qlkA";
 
 singalling.userToken = userToken;
 //await server.GetConsoles();
@@ -70,18 +70,18 @@ var ice = await singalling.GetIce();
  * 
  */
 await singalling.SetIceCandidates(ice);
-for(int i=0;i<30;i++)
-{
-    await Task.Yield();
-    await Task.Run(() =>
-    {
-        
-        Thread.Sleep(10000);
-        Console.WriteLine("Waiting...");
-    });
-}
 
-Console.ReadLine();
+
+// Ctrl-c will gracefully exit the call at any point.
+ManualResetEvent exitMre = new ManualResetEvent(false);
+Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e)
+{
+    e.Cancel = true;
+    exitMre.Set();
+};
+
+// Wait for a signal saying the call failed, was cancelled with ctrl-c or completed.
+exitMre.WaitOne();
 
 
 

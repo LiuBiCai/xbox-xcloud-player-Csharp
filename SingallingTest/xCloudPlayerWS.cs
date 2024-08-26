@@ -22,10 +22,38 @@ using SIPSorceryMedia.Encoders;
 using System.Runtime.Intrinsics.Arm;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using WebSocketSharp.Server;
+using WebSocketSharp;
+using WebSocketSharp.Net.WebSockets;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Serilog;
+using Serilog.Extensions.Logging;
 
 namespace SingallingTest
 {
-    public class xCloudPlayer
+    public class WebRtcClient : WebSocketBehavior
+    {
+        public RTCPeerConnection pc;
+
+        public event Func<WebSocketContext, Task<RTCPeerConnection>> WebSocketOpened;
+        public event Func<WebSocketContext, RTCPeerConnection, string, Task> OnMessageReceived;
+
+        public WebRtcClient()
+        { }
+
+        protected override void OnMessage(MessageEventArgs e)
+        {
+            OnMessageReceived(this.Context, pc, e.Data);
+        }
+
+        protected override async void OnOpen()
+        {
+            base.OnOpen();
+            pc = await WebSocketOpened(this.Context);
+        }
+    }
+    public class xCloudPlayerWS
     {
         /*
  *  _webrtcConfiguration = {
@@ -41,7 +69,7 @@ namespace SingallingTest
         static RTCConfiguration _webrtcConfiguration = new RTCConfiguration
         {
             iceServers = new List<RTCIceServer> { new RTCIceServer { urls = "stun:stun.l.google.com:19302" }, new RTCIceServer { urls = "stun:stun1.l.google.com:19302" } },
-            certificates = new List<RTCCertificate> { new RTCCertificate{Certificate= new X509Certificate2(LOCALHOST_CERTIFICATE_PATH, "", X509KeyStorageFlags.Exportable)    
+            certificates = new List<RTCCertificate> { new RTCCertificate{Certificate= new X509Certificate2(LOCALHOST_CERTIFICATE_PATH, "", X509KeyStorageFlags.Exportable)
             }
             }
 
@@ -67,12 +95,46 @@ namespace SingallingTest
 
         Stack<RTCIceCandidate> _iceCandidates = new Stack<RTCIceCandidate>();
         private static uint _rtpEventSsrc = 0;
-        public xCloudPlayer()
+
+       
+        private const int WEBSOCKET_PORT = 8081;
+        private const string FFPLAY_DEFAULT_SDP_PATH = "ffplay.sdp";
+        private const string FFPLAY_DEFAULT_COMMAND = "ffplay -probesize 32 -protocol_whitelist \"file,rtp,udp\" -i {0}";
+        private const int FFPLAY_DEFAULT_AUDIO_PORT = 5016;
+        private const int FFPLAY_DEFAULT_VIDEO_PORT = 5018;
+
+        private static Microsoft.Extensions.Logging.ILogger logger = NullLogger.Instance;
+
+        private static WebSocketServer _webSocketServer;
+        private static RTCPeerConnection _activePeerConnection;
+        public xCloudPlayerWS()
         {
             _webrtcClient = new RTCPeerConnection(_webrtcConfiguration);
+
+
+            CancellationTokenSource exitCts = new CancellationTokenSource();
+
             
-           
+            // Start web socket.
+            Console.WriteLine("Starting web socket server...");
+            _webSocketServer = new WebSocketServer(IPAddress.Any, WEBSOCKET_PORT);
+            //_webSocketServer = new WebSocketServer(IPAddress.Any, WEBSOCKET_PORT, true);
+            _webSocketServer.SslConfiguration.ServerCertificate = new X509Certificate2(LOCALHOST_CERTIFICATE_PATH);
+            _webSocketServer.SslConfiguration.CheckCertificateRevocation = false;
+            _webSocketServer.Log.Level = WebSocketSharp.LogLevel.Debug;
+            _webSocketServer.AddWebSocketService<WebRtcClient>("/", (client) =>
+            {
+                //client.WebSocketOpened += SendOffer;
+                client.OnMessageReceived += WebSocketMessageReceived;
+            });
+            _webSocketServer.Start();
+
         }
+        private static async Task WebSocketMessageReceived(WebSocketContext context, RTCPeerConnection pc, string message)
+        {
+            Console.WriteLine($"WebSocket message received {message}.");
+        }
+       
         /*
          *  _openDataChannels(){
         for(const channel in this._webrtcDataChannelsConfig){
@@ -115,11 +177,9 @@ namespace SingallingTest
                     _webrtcChannelProcessors.Add(name, new DebugChannel("chat"));
                     break;
                 case "message":
-                    // Fixed line : adding a constructor with 1 parameter
                     _webrtcChannelProcessors.Add(name, new MessageChannel("message"));
                     break;
             }
-
             _webrtcDataChannels[name].onopen += () =>
             {
                 Console.WriteLine($"xCloudPlayer Library.ts - Data channel {name} opened");
@@ -165,17 +225,17 @@ namespace SingallingTest
             MediaStreamTrack videoTrack = new MediaStreamTrack(videoSink.GetVideoSourceFormats(), MediaStreamStatusEnum.RecvOnly);
             //_webrtcClient.addTrack(videoTrack);
             //_webrtcClient.OnVideoFrameReceived += videoSink.GotVideoFrame;
-           /*
-            _webrtcClient.OnVideoFormatsNegotiated += (formats) =>
-            {
-                Console.WriteLine($"OnVideoFormatsNegotiated");
-                videoSink.SetVideoSourceFormat(formats.First());
-                videoSource.SetVideoSourceFormat(formats.First());
-            };
-           */
+            /*
+             _webrtcClient.OnVideoFormatsNegotiated += (formats) =>
+             {
+                 Console.WriteLine($"OnVideoFormatsNegotiated");
+                 videoSink.SetVideoSourceFormat(formats.First());
+                 videoSource.SetVideoSourceFormat(formats.First());
+             };
+            */
             _webrtcClient.OnTimeout += (mediaType) => Console.WriteLine($"Peer connection timeout on media {mediaType}.");
             _webrtcClient.oniceconnectionstatechange += (state) => Console.WriteLine($"ICE connection state changed to {state}.");
-           
+
             _webrtcClient.onconnectionstatechange += async (state) =>
             {
                 Console.WriteLine($"Peer connection connected changed to {state}.");
@@ -186,7 +246,7 @@ namespace SingallingTest
                     videoSource.Dispose();
                 }
             };
-            
+
             videoSink.OnVideoSinkDecodedSample += (byte[] bmp, uint width, uint height, int stride, VideoPixelFormatsEnum pixelFormat) =>
             {
                 Console.WriteLine($"OnVideoSinkDecodedSample.");
@@ -204,28 +264,26 @@ namespace SingallingTest
             RTCOfferOptions rTCOfferOptions = new RTCOfferOptions();
             rTCOfferOptions.X_ExcludeIceCandidates = true;
             offer = _webrtcClient.createOffer(rTCOfferOptions);
-            offer.sdp+="a=extmap-allow-mixed\r\n";
+            offer.sdp += "a=extmap-allow-mixed\r\n";
             offer.sdp += "a=msid-semantic: WMS\r\n";
-            offer.sdp=offer.sdp.Replace("ice2,trickle", "trickle");
-            SDP sDP =SDP.ParseSDPDescription(offer.sdp);
-            
-            //sDP.SessionName="-";
-            //sDP.AnnouncementVersion = 2;
-            
+            offer.sdp = offer.sdp.Replace("ice2,trickle", "trickle");
+            SDP sDP = SDP.ParseSDPDescription(offer.sdp);
 
-            offer.sdp=sDP.ToString();
-          
+            sDP.SessionName = "-";
+            sDP.AnnouncementVersion = 2;
+
+
+            offer.sdp = sDP.ToString();
+
 
             Console.WriteLine($"offer.sdp: {offer.sdp}");
             await _webrtcClient.setLocalDescription(offer).ConfigureAwait(false);
             //await videoSource.StartVideo().ConfigureAwait(false);
-            
-            _webrtcClient.onicecandidate +=  (cand) =>
+            _webrtcClient.onicecandidate += async (cand) =>
             {
                 Console.WriteLine(cand.ToString());
                 if (cand.candidate != null)
                 {
-                    //cand.usernameFragment = sDP.IceUfrag;
                     _iceCandidates.Push(cand);
                 }
 
@@ -233,8 +291,6 @@ namespace SingallingTest
                 // Handle ICE Candidate messages
                 //
             };
-            
-
             _webrtcClient.onicecandidateerror += (candidate, error) => Console.WriteLine($"Error adding remote ICE candidate. {error} {candidate}");
             _webrtcClient.OnRtcpBye += (reason) => Console.WriteLine($"RTCP BYE receive, reason: {(string.IsNullOrWhiteSpace(reason) ? "<none>" : reason)}.");
             // Peer ICE connection state changes are for ICE events such as the STUN checks completing.
@@ -272,7 +328,7 @@ namespace SingallingTest
                 }
             };
 
-           
+
             _webrtcClient.OnRtpEvent += (ep, ev, hdr) =>
             {
                 if (_rtpEventSsrc == 0)
@@ -292,13 +348,6 @@ namespace SingallingTest
                 {
                     _rtpEventSsrc = 0;
                 }
-            };
-            _webrtcClient.OnReceiveReport += (re, media, rr) => Console.WriteLine($"RTCP Receive for {media} from {re}\n{rr.GetDebugSummary()}");
-            _webrtcClient.OnSendReport += (media, sr) => Console.WriteLine($"RTCP Send for {media}\n{sr.GetDebugSummary()}");
-            _webrtcClient.GetRtpChannel().OnStunMessageReceived += (msg, ep, isRelay) =>
-            {
-                bool hasUseCandidate = msg.Attributes.Any(x => x.AttributeType == STUNAttributeTypesEnum.UseCandidate);
-                Console.WriteLine($"STUN {msg.Header.MessageType} received from {ep}, use candidate {hasUseCandidate}.");
             };
         }
 
@@ -361,7 +410,11 @@ namespace SingallingTest
                     }
                 }
             }), Encoding.UTF8, "application/json");
-            Console.WriteLine(offer.sdp);
+            //Console.WriteLine(offer.sdp);
+
+
+
+            await _webrtcClient.Start();
             using var client = new HttpClient();
             var response = await client.SendAsync(postRequest);
             //Console.WriteLine(response.Content.ToString());
@@ -395,20 +448,20 @@ namespace SingallingTest
                 }
             }
         }
-       
+
         public async Task<string> GetConfig()
         {
             System.Console.WriteLine($"API - config sessionID: {tempSessionID}");
-            
+
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {userToken}");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 int waitCount = 0;
                 do
-            {
-               
-                    
+                {
+
+
 
                     var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/configuration");
 
@@ -419,19 +472,19 @@ namespace SingallingTest
                         return responseData;
                     }
 
-                   
+
                     await Task.Delay(1000);
                 }
-                while (waitCount++ <100);
+                while (waitCount++ < 100);
             }
             return getConfigFailed;
         }
 
-        
+
         public async Task<string> ConfigureSDP()
         {
             Console.WriteLine("API - config-sdp sessionID:" + tempSessionID);
-            
+
             using (var client = new HttpClient())
             {
                 int waitCount = 0;
@@ -440,21 +493,21 @@ namespace SingallingTest
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 do
                 {
-                    
+
 
                     HttpResponseMessage response = await client.GetAsync("/v4/sessions/home/" + tempSessionID + "/sdp");
-                    if(response.StatusCode== HttpStatusCode.OK)
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
                         var responseBody = await response.Content.ReadAsStringAsync();
-                       
 
-                            Console.WriteLine(responseBody);
-                            return responseBody;
-                        
-                       
+
+                        Console.WriteLine(responseBody);
+                        return responseBody;
+
+
                     }
                     await Task.Delay(1000);
-                } 
+                }
                 while (waitCount++ < 100);
                 return getConfigSDPFailed;
 
@@ -512,37 +565,36 @@ namespace SingallingTest
             {
                 //反序列化data
                 //"{\"exchangeResponse\":\"{\\\"audio\\\":1,\\\"chat\\\":1,\\\"chatConfiguration\\\":{\\\"format\\\":{\\\"codec\\\":\\\"opus\\\",\\\"container\\\":\\\"webm\\\"}},\\\"control\\\":2,\\\"input\\\":4,\\\"message\\\":1,\\\"messageType\\\":\\\"answer\\\",\\\"sdp\\\":\\\"v=0\\\\r\\\\no=- 4649125511298530 2 IN IP4 127.0.0.1\\\\r\\\\ns=-\\\\r\\\\nt=0 0\\\\r\\\\na=group:BUNDLE 0\\\\r\\\\na=msid-semantic: WMS\\\\r\\\\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\\\\r\\\\nc=IN IP4 0.0.0.0\\\\r\\\\na=ice-ufrag:HiBsFfw4Nf\\\\r\\\\na=ice-pwd:ctoAxwOKKy29bp9WCWWmquTk\\\\r\\\\na=fingerprint:sha-256 78:D6:C4:80:14:2F:F0:A3:11:38:21:98:F4:38:0A:37:2F:4A:51:C1:0A:37:CF:72:B5:E5:B2:BE:47:E0:B2:14\\\\r\\\\na=setup:active\\\\r\\\\na=mid:0\\\\r\\\\na=sctp-port:20284\\\\r\\\\n\\\",\\\"sdpType\\\":\\\"answer\\\",\\\"status\\\":\\\"success\\\",\\\"supportedFecProtocols\\\":[\\\"raptorq\\\"],\\\"video\\\":2}\",\"errorDetails\":{\"code\":null,\"message\":null}}"
-                string sdpPattern = "\\\\\"sdp\\\\\":\\\\\"(.*?)\\\\\""; 
-                Match sdpMatch = Regex.Match(data, sdpPattern); 
-                string sdp = sdpMatch.Groups[1].Value;              
-                
+                string sdpPattern = "\\\\\"sdp\\\\\":\\\\\"(.*?)\\\\\"";
+                Match sdpMatch = Regex.Match(data, sdpPattern);
+                string sdp = sdpMatch.Groups[1].Value;
+
                 sdp = sdp.Replace("\\\\", "\\");
-                sdp=Regex.Replace(sdp, @"\\r\\n", "\r\n");
-                sdp= Regex.Replace(sdp, @"\\n", "\n");
-                sdp= Regex.Replace(sdp, @"\\r", "\r");
-                
+                sdp = Regex.Replace(sdp, @"\\r\\n", "\r\n");
+                sdp = Regex.Replace(sdp, @"\\n", "\n");
+                sdp = Regex.Replace(sdp, @"\\r", "\r");
+
                 SDP des = SDP.ParseSDPDescription(sdp);
                 _webrtcClient.SetRemoteDescription(SdpType.answer, des);
-               
                 
+
                 return true;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine("SetRemoteOffer");
                 return false;
 
             }
 
-           
+
         }
 
         public async Task<bool> PostIce()
         {
-            var can = _iceCandidates.Peek();
             var iceCandidate = new IceCandidate
             {
-                candidate = can.candidate+" ufrag "+can.usernameFragment+ " network-cost 999",
+                candidate = _iceCandidates.Peek().candidate,
                 sdpMid = "0",
                 sdpMLineIndex = 0
             };
@@ -553,7 +605,7 @@ namespace SingallingTest
             Console.WriteLine($"API - POST - config-ice sessionID: {tempSessionID}");
             Console.WriteLine(ice);
 
-           string postData= "{\"messageType\": \"iceCandidate\",\"candidate\":"+ice+"}";
+            string postData = "{\"messageType\": \"iceCandidate\",\"candidate\":" + ice + "}";
 
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
@@ -595,7 +647,7 @@ namespace SingallingTest
 
         public async Task<string> SetIceCandidates(string data)
         {
-            string[] array = data.Split("\\\"",StringSplitOptions.RemoveEmptyEntries);
+            string[] array = data.Split("\\\"", StringSplitOptions.RemoveEmptyEntries);
             foreach (string text in array)
             {
                 if (text.Contains("end-of-candidates"))
@@ -609,14 +661,14 @@ namespace SingallingTest
                         sdpMLineIndex = 0
                     });
                 }
-                
+
             }
 
 
-                Console.WriteLine(data);
+            Console.WriteLine(data);
             // iceCandidates = JsonConvert.DeserializeObject<IcePayloads>(data);
 
-           
+
             /*
             foreach (var iceCandidate in iceCandidates)
             {
@@ -631,7 +683,7 @@ namespace SingallingTest
                 });
             }
             */
-            
+
             return "success";
         }
 
@@ -640,27 +692,8 @@ namespace SingallingTest
             return _webrtcDataChannels[name];
         }
     }
-    public class SessionStartResponse
-    {
-        public string SessionId { get; set; } = "";
-        // Define additional properties for the session start response here
-    }
-    public class IceCandidate
-    {
-        public string candidate { get; set; }
-        public int sdpMLineIndex { get; set; }
-        public string sdpMid { get; set; }
-    }
-
-    public class IcePayload
-    {
-        public IceCandidate ice { get; set; }
-    }
-
-    public class IcePayloads
-    {
-        public IceCandidate[] candidates { get; set; }
-    }
+   
 
 
 }
+

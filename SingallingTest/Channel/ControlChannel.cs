@@ -8,7 +8,7 @@ namespace SingallingTest.Channel
 {
     public class ControlChannel : BaseChannel
     {
-        public ControlChannel(string channelName, xCloudPlayer client) : base(channelName, client)
+        public ControlChannel(string channelName) : base(channelName)
         {
            
         }
