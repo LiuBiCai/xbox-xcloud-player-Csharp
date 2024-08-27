@@ -3,6 +3,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,14 +14,33 @@ namespace xboxRemoteTest
         private readonly HttpClient _httpClient = new HttpClient();
         public string userToken { get; set; } = "";
         public string tempSessionID { get; set; } = "";
+        public string host = "https://uks.core.gssv-play-prodxhome.xboxlive.com/";
 
         public async Task<Tuple<bool, string>> GetConsoles()
         {
             Console.WriteLine("API - consoles request");
+            /*
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //添加请求头
 
-            HttpResponseMessage response = await _httpClient.GetAsync("https://uks.gssv-play-prodxhome.xboxlive.com/v6/servers/home");
+
+
+            HttpResponseMessage response = await _httpClient.GetAsync(host+"v6/servers/home");
+            */
+            //var deviceInfo = ApiClient.GetDeviceInfo();
+            var request = new HttpRequestMessage(HttpMethod.Get, host + "v6/servers/home");
+
+            request.Headers.Add("Accept", "application/json");
+            request.Headers.Add("Content-Type", "application/json");
+            request.Headers.Add("X-Gssv-Client", "XboxComBrowser");
+            //request.Headers.Add("X-MS-Device-Info", deviceInfo);
+            request.Headers.Add("Authorization", "Bearer " + userToken);
+
+           
+            
+
+            var response = await _httpClient.SendAsync(request);
             string responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
@@ -43,7 +63,7 @@ namespace xboxRemoteTest
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/state");
+            var response = await client.GetAsync(host+$"v5/sessions/home/{tempSessionID}/state");
             var data = await response.Content.ReadAsStringAsync();
             Console.WriteLine("API - session statuscode: " + response.StatusCode);
             return data;
@@ -51,7 +71,7 @@ namespace xboxRemoteTest
 
         public async Task<SessionStartResponse> Start(string serverId)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/play");
+            var request = new HttpRequestMessage(HttpMethod.Post, host+"v5/sessions/home/play");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             var requestBody = new
             {

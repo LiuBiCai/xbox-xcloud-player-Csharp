@@ -27,6 +27,9 @@ namespace SingallingTest
 {
     public class xCloudPlayer
     {
+
+        public string host = "https://uks.core.gssv-play-prodxhome.xboxlive.com/";
+        public string sessionsPath = "https://uks.core.gssv-play-prodxhome.xboxlive.com/v5/sessions/home/";
         /*
  *  _webrtcConfiguration = {
         iceServers: [{
@@ -308,7 +311,7 @@ namespace SingallingTest
         public async Task<bool> PostConfigSdp()
         {
             System.Console.WriteLine($"API - POST - config-sdp sessionID: {tempSessionID}");
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/sdp");
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, sessionsPath+$"{tempSessionID}/sdp");
             postRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             postRequest.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(new
             {
@@ -410,7 +413,7 @@ namespace SingallingTest
                
                     
 
-                    var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/configuration");
+                    var response = await client.GetAsync(sessionsPath+$"{tempSessionID}/configuration");
 
                     System.Console.WriteLine($"API - config statuscode: {response.StatusCode}");
                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -435,14 +438,14 @@ namespace SingallingTest
             using (var client = new HttpClient())
             {
                 int waitCount = 0;
-                client.BaseAddress = new Uri("https://uks.gssv-play-prodxhome.xboxlive.com");
+                client.BaseAddress = new Uri(host);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 do
                 {
                     
 
-                    HttpResponseMessage response = await client.GetAsync("/v4/sessions/home/" + tempSessionID + "/sdp");
+                    HttpResponseMessage response = await client.GetAsync(sessionsPath + tempSessionID + "/sdp");
                     if(response.StatusCode== HttpStatusCode.OK)
                     {
                         var responseBody = await response.Content.ReadAsStringAsync();
@@ -464,7 +467,7 @@ namespace SingallingTest
         public async Task<string> Start(string serverId)
         {
             HttpClient _httpClient = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/play");
+            var request = new HttpRequestMessage(HttpMethod.Post, host+"v5/sessions/home/play");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             var requestBody = new
             {
@@ -473,6 +476,7 @@ namespace SingallingTest
                 settings = new
                 {
                     nanoVersion = "V3;RtcdcTransport.dll",
+                    enableOptionalDataCollection=false,
                     enableTextToSpeech = false,
                     highContrast = 0,
                     locale = "en-US",
@@ -487,6 +491,7 @@ namespace SingallingTest
             request.Content = new StringContent(JsonConvert.SerializeObject(requestBody), System.Text.Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             Console.WriteLine("API - start statuscode: " + (int)response.StatusCode);
+            Console.WriteLine(response.Headers.ToString());
             var responseData = JsonConvert.DeserializeObject<SessionStartResponse>(await response.Content.ReadAsStringAsync());
             tempSessionID = responseData.SessionId;
             Console.WriteLine("API - start set sessionID: " + tempSessionID);
@@ -500,7 +505,7 @@ namespace SingallingTest
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/state");
+            var response = await client.GetAsync(sessionsPath+$"{tempSessionID}/state");
             var data = await response.Content.ReadAsStringAsync();
             Console.WriteLine("API - session statuscode: " + response.StatusCode);
             return data;
@@ -558,7 +563,7 @@ namespace SingallingTest
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             HttpContent httpContent = new StringContent(postData, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await httpClient.PostAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/ice", httpContent);
+            HttpResponseMessage response = await httpClient.PostAsync(sessionsPath+$"{tempSessionID}/ice", httpContent);
 
             Console.WriteLine($"API - start statuscode: {response.StatusCode}");
             return response.IsSuccessStatusCode;
@@ -575,7 +580,7 @@ namespace SingallingTest
                 do
                 {
 
-                    var response = await client.GetAsync($"https://uks.gssv-play-prodxhome.xboxlive.com/v4/sessions/home/{tempSessionID}/ice");
+                    var response = await client.GetAsync(sessionsPath+$"{tempSessionID}/ice");
                     Console.WriteLine($"API - config-ice statuscode: {(int)response.StatusCode}");
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
